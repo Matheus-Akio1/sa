@@ -2,7 +2,7 @@ name: Rust-Python Tests
 
 on:
   push:
-    branches: [ main, feat/rust-python-bindings ]
+    branches: [ main, feat/rust-python-bindings, copilot/add-rust-library-with-python-bindings ]
   pull_request:
     branches: [ main ]
 
@@ -38,16 +38,16 @@ jobs:
     - name: Cache cargo build
       uses: actions/cache@v4
       with:
-        path: rust_forecast/target
+        path: rust/sa_native/target
         key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
     
     - name: Build Rust library
-      working-directory: ./rust_forecast
+      working-directory: ./rust/sa_native
       run: cargo build --verbose
     
     - name: Run Rust tests
-      working-directory: ./rust_forecast
-      run: cargo test --verbose
+      working-directory: ./rust/sa_native
+      run: cargo test --lib --verbose
 
   python-integration:
     name: Python Integration Tests
@@ -73,16 +73,18 @@ jobs:
         pip install maturin
     
     - name: Build Python package
-      working-directory: ./rust_forecast
+      working-directory: ./rust/sa_native
       run: |
-        maturin develop
+        maturin build --release
+    
+    - name: Install Python package
+      run: |
+        pip install rust/sa_native/target/wheels/sa_native-*.whl
     
     - name: Test Python import
-      working-directory: ./rust_forecast
       run: |
-        python -c "import rust_forecast; print('Module imported successfully'); result = rust_forecast.predict([1.0, 2.0, 3.0]); print('Prediction result:', result); assert result == [1.0, 2.0, 3.0], 'Unexpected result'"
+        python -c "import sa_native; print('Module imported successfully'); result = sa_native.predict_static([1.0, 2.0, 3.0], 2); print('Prediction result:', result); assert result == [3.0, 3.0], 'Unexpected result'"
     
     - name: Run Python integration tests
-      working-directory: ./rust_forecast
       run: |
-        python tests_py/test_import.py
+        python examples/python_import_test.py
