@@ -2,7 +2,7 @@ name: Rust-Python Tests
 
 on:
   push:
-    branches: [ main, feat/rust-python-bindings, copilot/add-rust-library-with-python-bindings ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
